@@ -1,0 +1,1 @@
+All the logs of rclone transfer will be this folder

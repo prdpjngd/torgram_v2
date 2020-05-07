@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TORGRAM - Torrent Client</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+</head>
+<style>
+  input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+</style>
+
+<body>
+  <div class="jumbotron text-center">
+    <h1>TORGRAM</h1>
+    <p>------ Cloud Torrent Client on Heroku ------</p>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4">
+        <h2>Paste Magnet link</h2>
+        <form action="/add-magnet">
+          <label for="fname">Magnet -> </label>
+          <input type="text" name="link" placeholder="paste magnet url here">
+          <input type="submit" value="Submit">
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+</body>
+</html>

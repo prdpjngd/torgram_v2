@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Torgram : torrent seedr</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
+
+
+<style>
+#rcorners2 {
+  border-radius: 10px;
+  border: 2px solid grey;
+  padding: 7px;
+  width: 200px;
+}
+#u_profile {
+  padding: 7px;
+  border-width: 10px;
+}
+#u_profile  p {
+  padding: 15px;
+  margin: 0px;
+}
+
+
+
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+</style>
+</head>
+
+<body>
+  <div class="jumbotron text-center">
+    <h1>TORGRAM</h1>
+    <p>------ Cloud Torrent Client on Heroku ------</p>
+  </div>
+
+  <div class="container">
+    <div class="row">
+
+      <!-- column - 1 -->
+      <div class="col-sm-4">
+        <h2>Add Torrent Here</h2><hr>
+        <div class="container">
+              <form action="/add-magnet" method="get" id='add-mag'>
+                <input type="text" name="mag-link" placeholder="Paste magnet url here" required>
+                <input type="submit" value="Submit"><hr>
+              </form>
+        </div>
+        <div id="server-results"></div>
+        {% if login!="false" %}
+          <a href="/drive?remote={{login}}">
+            <img src="https://www.pngarts.com/files/3/Folder-PNG-Image.png" 
+            height="42" width="42" alt="drive Icon">
+            Go to Files [{{login}}]
+          </a>
+          <br>
+        {% else %}
+          <a href="/login">
+            <img alt="Qries" src="https://i.ya-webdesign.com/images/login-button-png-2.png"
+            width="45" height="45"> Login GDrive
+          </a>
+          <a href="/drive?remote=false">
+            <img src="https://www.pngarts.com/files/3/Folder-PNG-Image.png" 
+            height="42" width="42" alt="drive Icon">
+            Go to Files
+          </a>
+          <br>
+        {% endif %}
+        <br><a href="/drive-transfers">Drive Transfer Logs >> </a>
+      </div>
+
+      <!-- column - 2  -->
+      <div class="col-sm">
+        <h3>Downloading Torrents list</h3><hr>
+        {% for item in opt %}
+        <ul class="list-group">
+          <li class="list-group-item default">
+            <div>{{item[0]}}</div>
+            <div>Seeds : {{item[3]}} | Speed : {{item[1]}} | Total : {{item[2]}} | Time : {{item[6]}} | {{item[7]}} </div>
+            <div class="row">
+            <div style="padding:7px;width:90%;"><div class="progress" style="width:98%" ><div class="progress-bar {{item[5]}}" style="width:{{item[4]}};">{{item[4]}}</div></div></div>
+            <div "btn-group">
+              {% if 'bg-success' in item[5] %}
+              <button type="button" onclick="action2('{{item[7]}}')" id='pause{{item[7]}}' class="btn btn-danger" style="height:24px;width:25px;padding:0px"><i style="font-size: 15px" class="fas fa-pause"></i></button>
+              <button type="button" onclick="action3('{{item[7]}}')" id='stop{{item[7]}}'class="btn btn-danger" style="height:24px;width:30px;padding:0px"><i style="font-size: 15px" class="fas fa-trash"></i></button>
+              {% else %}
+              <button type="button" onclick="action1('{{item[7]}}')" id='resume{{item[7]}}' class="btn btn-danger" style="height:24px;width:25px;padding:0px;"><i style="font-size: 15px" class="fas fa-play"></i></button>
+              <button type="button" onclick="action3('{{item[7]}}')" id='stop{{item[7]}}'class="btn btn-danger" style="height:24px;width:30px;padding:0px"><i style="font-size: 15px" class="fas fa-trash"></i></button>
+              {% endif %}
+            </div>
+            </div>
+          </li>
+        </ul><br>
+        {% endfor %}
+      </div>
+
+<script>
+$("#add-mag").submit(function(event){
+	event.preventDefault(); //prevent default action
+	var post_url = $(this).attr("action"); //get form action url
+	var request_method = $(this).attr("method"); //get form GET/POST method
+	var form_data = $(this).serialize(); //Encode form elements for submission
+	$.ajax({
+		url : post_url,
+		type: request_method,
+		data : form_data
+	}).done(function(response){ //
+		$("#server-results").html(response);
+	});
+});
+
+
+function action1(gid1) {
+  $.ajax({
+    url : '/resume',
+    type: 'get',
+    data : {gid:gid1}
+  }).done(function(response){ //
+    if(response=='True')
+    {
+      window.location.reload();
+    }
+    else{alert('resume already')}
+  });
+}
+
+
+function action2(gid1) {
+  $.ajax({
+    url : '/pause',
+    type: 'get',
+    data : {gid:gid1}
+  }).done(function(response){ //
+    if(response=='True')
+    {
+      window.location.reload();
+    }
+    else{alert('paused already')}
+  });
+}
+
+function action3(gid1) {
+  $.ajax({
+    url : '/stop',
+    type: 'get',
+    data : {gid:gid1}
+  }).done(function(response){ //
+    if(response=='True')
+    {
+      window.location.reload();
+    }
+    else{alert('paused already')}
+  });
+}
+
+setTimeout(function(){
+   window.location.reload(1);
+}, 5000);
+
+{% if forward=="true"%}
+window.location.href = "/";
+{% endif %}
+
+</script>
+
+</body>
+</html>

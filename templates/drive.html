@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+{% if d_name!="false" %}
+<h1>Temporary Drive /</h1>
+<p>Remote Drive : {{d_name}}</p>
+<hr>
+Path : /files|{{ arg }}
+<hr>
+  {% for item in list1 %}
+  <ul style="list-style-type:circle;">
+      <li><a href="/drive/{{arg}}{{item}}?&drive={{d_name}}">{{ item }}</a></li>
+      </ul>
+  {% endfor %}
+  {% for item in list2 %}
+  <ul style="list-style-type:disc;">
+      <li><a href="/static/files/{{arg1}}{{item}}">{{ item }}</a><a style="color: hotpink;" href="/m2d?k={{arg | replace("+","%2B")}}{{item | replace("+","%2B")}}&drive={{d_name}}"> [MOVE TO DRIVE] </a></li>
+      </ul>
+  {% endfor %}
+
+<hr>
+{% else %}
+<h1>Temporary Drive /</h1>
+<p>No Remote Drive</p>
+<hr>
+Path : /files|{{ arg }}
+<hr>
+  {% for item in list1 %}
+  <ul style="list-style-type:circle;">
+      <li><a href="/drive/{{arg}}{{item}}">{{ item }}</a></li>
+      </ul>
+  {% endfor %}
+  {% for item in list2 %}
+  <ul style="list-style-type:disc;">
+      <li><a href="/static/files/{{arg1}}{{item}}">{{ item }}</a></li>
+      </ul>
+  {% endfor %}
+{% endif %}
+</body>
+</html>

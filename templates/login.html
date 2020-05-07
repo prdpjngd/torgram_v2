@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Torgram : torrent seedr</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
+
+
+<style>
+#rcorners2 {
+  border-radius: 10px;
+  border: 2px solid grey;
+  padding: 7px;
+  width: 200px;
+}
+
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+</style>
+</head>
+
+<body>
+  <div class="jumbotron text-center">
+    <h1>TORGRAM</h1>
+    <p>------ Cloud Torrent Client on Heroku ------</p>
+  </div>
+
+  <div class="container">
+    <div class="row">
+
+      <!-- column - 1 -->
+      <div class="col-sm-4">
+
+      </div>
+
+      <!-- column - 2  -->
+      <div class="col-sm-4">
+        <h6>Step 1: Get the code </h6><hr>
+        <a class="btn darken-4 white black-text" href="https://accounts.google.com/o/oauth2/auth?access_type=offline&client_id=202264815644.apps.googleusercontent.com&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive&state=8oaazoYwl4ADbrsHT2a11g" id="rcorners2" target="_blank" style="text-transform:none">
+          <img width="20px" style="margin-bottom:2px; margin-right:7px" alt="Google sign-in"
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" />
+          Login with Google
+        </a><br><br>
+        <h6>Step 2: Paste Your Login Code </h6>
+        <hr>
+        <form method="get" action="login">
+          <input type="text" id="login_code" name="login_code" placeholder="Put login Code here" required>
+          <input type="text" id="username" name="username" value={{username}} placeholder="Username" required>
+          <input type="submit" value="Login">
+        </form>
+      </div>
+
+<script>
+$("#add-mag").submit(function(event){
+	event.preventDefault(); //prevent default action
+	var post_url = $(this).attr("action"); //get form action url
+	var request_method = $(this).attr("method"); //get form GET/POST method
+	var form_data = $(this).serialize(); //Encode form elements for submission
+	$.ajax({
+		url : post_url,
+		type: request_method,
+		data : form_data
+	}).done(function(response){ //
+		$("#server-results").html(response);
+	});
+});
+
+
+function action1(gid1) {
+  $.ajax({
+    url : '/resume',
+    type: 'get',
+    data : {gid:gid1}
+  }).done(function(response){ //
+    if(response=='True')
+    {
+      window.location.reload();
+    }
+    else{alert('resume already')}
+  });
+}
+
+
+function action2(gid1) {
+  $.ajax({
+    url : '/pause',
+    type: 'get',
+    data : {gid:gid1}
+  }).done(function(response){ //
+    if(response=='True')
+    {
+      window.location.reload();
+    }
+    else{alert('paused already')}
+  });
+}
+
+function action3(gid1) {
+  $.ajax({
+    url : '/stop',
+    type: 'get',
+    data : {gid:gid1}
+  }).done(function(response){ //
+    if(response=='True')
+    {
+      window.location.reload();
+    }
+    else{alert('paused already')}
+  });
+}
+
+
+</script>
+
+</body>
+</html>
