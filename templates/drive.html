@@ -1,42 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <style>
+#alert {
+  padding: 5px;
+  background-color: red;
+  color: white;
+  width: auto;
+  position: fixed;
+  z-index: -1;
+  right: 0%;
+  bottom: 2%;
+  display: none;
+}
+  </style>
 </head>
 <body>
-{% if d_name!="false" %}
+{% if remote!="false" %}
 <h1>Temporary Drive /</h1>
-<p>Remote Drive : {{d_name}}</p>
+<p>Remote Drive : {{remote}}</p>
 <hr>
-Path : /files|{{ arg }}
+Path : {{ path }}
 <hr>
-  {% for item in list1 %}
+  {% for item in folders %}
   <ul style="list-style-type:circle;">
-      <li><a href="/drive/{{arg}}{{item}}?&drive={{d_name}}">{{ item }}</a></li>
+      <li><a href="/{{path}}{{item}}?&remote={{remote}}">{{ item | replace(":","/") }}</a></li>
       </ul>
   {% endfor %}
-  {% for item in list2 %}
+  {% for item in files %}
   <ul style="list-style-type:disc;">
-      <li><a href="/static/files/{{arg1}}{{item}}">{{ item }}</a><a style="color: hotpink;" href="/m2d?k={{arg | replace("+","%2B")}}{{item | replace("+","%2B")}}&drive={{d_name}}"> [MOVE TO DRIVE] </a></li>
+      <li><a href="/{{path}}{{item}}"> {{ item }} [{{files_size[loop.index0]}}]</a><button onclick="move2drive('/m2d?path={{path | replace("+","%2B")}}{{item | replace("+","%2B")}}&drive={{remote}}');">Move to Drive</button></li>
       </ul>
   {% endfor %}
 
 <hr>
 {% else %}
 <h1>Temporary Drive /</h1>
-<p>No Remote Drive</p>
+<p>No Remote Drive Available</p>
 <hr>
-Path : /files|{{ arg }}
+Path : {{ path }}
 <hr>
-  {% for item in list1 %}
+  {% for item in folders %}
   <ul style="list-style-type:circle;">
-      <li><a href="/drive/{{arg}}{{item}}">{{ item }}</a></li>
+      <li><a href="/{{path}}{{item}}"> {{ item[:100] | replace(":","/")}}</a></li>
       </ul>
   {% endfor %}
-  {% for item in list2 %}
+  {% for item in files %}
   <ul style="list-style-type:disc;">
-      <li><a href="/static/files/{{arg1}}{{item}}">{{ item }}</a></li>
+      <li><a href="/{{path}}{{item}}"> {{ item[:100] }} [{{files_size[loop.index0]}}]</a></li>
       </ul>
   {% endfor %}
 {% endif %}
+
+<div id="alert">
+  <strong><div id="alert_message">File Sent !!<div></strong>
+</div>
+
+<script>
+    function move2drive(arg) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", arg, false ); // false for synchronous request
+    xmlHttp.send();
+    res=xmlHttp.responseText;
+    if (res.split(':')[0]=='0')
+    {
+      page_alert(res.split(':')[1]);
+    }
+    else{
+      page_alert('File Sent!')
+    }
+    
+  }
+
+  function page_alert(arg) {	
+    document.getElementById("alert").style.display="block";
+    document.getElementById("alert_message").innerHTML=arg;
+      setTimeout(hide_alert,2000);
+  }
+  
+  function hide_alert() {
+    document.getElementById("alert").style.display="none";
+  }
+</script>
+
 </body>
 </html>

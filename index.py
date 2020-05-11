@@ -3,7 +3,7 @@ import subprocess
 import asyncio
 import os
 import random
-from flask import Flask, render_template, request, redirect, make_response, session,url_for,send_from_directory
+from flask import json,Flask, render_template, request, redirect, make_response, session,url_for,send_from_directory
 app = Flask(__name__)
 
 #how too get environment varible values -->  " os.environ['S3_KEY'] "
@@ -31,8 +31,7 @@ def run():
     aria2_daemon_start_cmd.append("--seed-time=1")
     aria2_daemon_start_cmd.append("--split=10")
     aria2_daemon_start_cmd.append("--bt-stop-timeout=600")
-    aria2_daemon_start_cmd.append("--dir=/app/static/files")
-    aria2_daemon_start_cmd.append("--dir=/Users/pradeepjangid/torgram_projects/torgram/static/files")
+    aria2_daemon_start_cmd.append("--dir=/app/drive")
     subprocess.Popen(aria2_daemon_start_cmd)
     subprocess.call
     return redirect(url_for('home'))
@@ -41,49 +40,47 @@ def run():
 def home():
     uid_token = request.cookies.get('uid_token')
     if 'aria2c' in str(subprocess.Popen(['ps -ax'],shell=True,stdout=subprocess.PIPE).stdout.read()).replace('\n','<br>'):
-        downloads = aria2.get_downloads()
-        opt=[]
-        for download in downloads:
-            tmp=[]
-            tmp.append(str(download.name))
-            tmp.append(str(download.download_speed_string()))
-            tmp.append(str(download.total_length_string()))
-            tmp.append(str(download.connections))
-            tmp.append(str(download.progress_string()))
-            if str(download.status)=='active':
-                tmp.append('bg-success progress-bar-striped progress-bar-animated')
-            elif str(download.status)=='complete':
-                tmp.append('progress-bar-info')
-            else:
-                tmp.append('bg-danger progress-bar-striped')
-            tmp.append(str(download.eta_string()))
-            tmp.append(str(download.gid))
-            opt.append(tmp)
-        if uid_token:
-            remote_list=str(subprocess.check_output("rclone listremotes", shell=True)).replace("b'","").replace("'","").split(":\\n")[:-1]
-            if uid_token in remote_list:
-                return render_template('index.html',opt=opt,login=uid_token)
-            else:
-                return render_template('index.html',opt=opt,login="false")
-        else:
-            return render_template('index.html',opt=opt,login="false")
+        return render_template("index.html")
     else:
         return redirect(url_for('run'))
+
+#check user is  avilabe in rclone list remotes
+@app.route('/check-user',methods=['GET'])
+def check_user():
+    username=request.args.get('username')
+    user_list=[i.replace("b'","").replace("'","") for i in str(subprocess.Popen(["rclone","listremotes"], stdout=subprocess.PIPE).communicate()[0]).split(":\\n")][:-1]
+    if username in user_list:
+        return "true"
+    else:
+        return "false"
+
 
 @app.route('/list',methods = ['GET'])
 def list():
     # list all downloads
     downloads = aria2.get_downloads()
-    opt=''
+    result_list=[]
     for download in downloads:
-        opt=opt+'Name : '+str(download.name)+'<br>'
-        opt=opt+'D Speed : '+str(download.download_speed_string())+'<br>'
-        opt=opt+'Total : '+str(download.total_length_string())+'<br>'
-        opt=opt+'Seeds and peers  : '+str(download.connections)+'<br>'
-        opt=opt+'Progress : '+str(download.progress_string())+'<br>'
-        opt=opt+'status : '+str(download.status)+'<br>'
-        opt=opt+'ETA : '+str(download.eta_string())+'<br><hr>'
-    return str(opt)
+        tmp={
+            "Gid":str(download.gid),
+            "Name":str(download.name),
+            "Speed":str(download.download_speed_string()),
+            "Total":str(download.total_length_string()),
+            "Seeds":str(download.connections),
+            "Progress":str(download.progress_string()),
+            "Status":str(download.status),
+            "ETA":str(download.eta_string())
+        }
+        result_list.append(tmp)
+    output = {
+        "ok": True,
+        "result": result_list
+        }
+    response = app.response_class(
+        response=json.dumps(output),
+        mimetype='application/json'
+    )
+    return response
 
 # to pause leech with gid
 @app.route('/pause',methods = ['GET'])
@@ -132,12 +129,7 @@ def status():
     opt=opt+'Progress: '+str(file.progress_string())+'<br>'
     opt=opt+'Total: '+str(file.total_length_string())+'<br>'
     return opt
-
-
-@app.route('/upload',methods = ['GET'])
-def upload():
-    return render_template('upload.html')
-
+    
 # add magnet link to Aria2C 
 @app.route('/add-magnet',methods = ['GET'])
 def download():
@@ -146,61 +138,29 @@ def download():
     return str(gid)
 
 
-# to list drive  sub folder.. 
-@app.route('/drive/<arg>',methods = ['GET'])
-def action(arg):
-        sel_dr= request.args.get('drive')
-        arg1=str(arg).replace('|','/')
-        arg=arg+'|'
-        ls1=[]
-        ls2=[]
-        ls3=[]
-        ls4=[]
-        #properties extract i.e folder or file
-        tmp1=[]
-        k=subprocess.Popen(["ls","-l","static/files/"+arg1],stdout=subprocess.PIPE).stdout
-        for i in k:
-            tmp1.append(str(i))
-        tmp1=tmp1[1:]
-        for i in tmp1:
-            ls1.append(str(i).split("'")[1][0])
-        #seq. me name load from system
-        tmp2=[]
-        k=subprocess.Popen(["ls","static/files/"+arg1],stdout=subprocess.PIPE).stdout
-        for i in k:
-            tmp2.append(str(i))
-        for i in tmp2:
-            ls2.append(str(i).split("'")[1].split("\\n")[0])
-        #diffrent lists of files and folders
-        for i in range(0,len(ls1)):
-            if ls1[i]=='d':
-                ls3.append(ls2[i])
-            elif ls1[i]=='-':
-                ls4.append(ls2[i])
-        arg1=arg1+'/'
-        return render_template('drive.html',list1=ls3,list2=ls4,arg=arg,arg1=arg1,d_name=sel_dr)
-
 # copy file to remote drive function ...
 @app.route('/m2d',methods = ['GET'])
 def copy2d():
     sel_dr = request.args.get('drive')
-    k = request.args.get('k')
-    path=str(k).replace('|','/').replace(' ','\ ').replace('[','\[').replace(']','\]').replace('(','\(').replace(')','\)')
+    k = request.args.get('path')
+    path=str(k).replace(' ','\ ').replace('[','\[').replace(']','\]').replace('(','\(').replace(')','\)')
     if sel_dr:
-        process = subprocess.Popen(['nohup rclone copy static/files/'+path+' '+sel_dr+':/drive -P > static/files/logs/'+str(path.split('/')[-1])+'-logfile.txt &'],shell=True,preexec_fn=os.setsid)
-        return 'static/files/logs/'+str(path.split('/')[-1])+'-logfile.txt'
+        files_list=[str(i).split("'")[1].replace("\\n","") for i in subprocess.Popen(["ls","drive/logs"],stdout=subprocess.PIPE).stdout]
+        if str(path.split('/')[-1])+'-'+sel_dr+'-logfile.txt' not in files_list:
+            process = subprocess.Popen(['nohup rclone copy '+path+' '+sel_dr+':/drive -P > drive/logs/'+str(path.split('/')[-1])+'-'+sel_dr+'-logfile.txt &'],shell=True,preexec_fn=os.setsid)
+            return '1:drive/logs/'+str(path.split('/')[-1])+'-logfile.txt'
+        else:
+            return '0:File Already Found In Drive'
     else:
-        process = subprocess.Popen(['nohup rclone copy static/files/'+path+' torgram:/drive -P > static/files/logs/'+str(path.split('/')[-1])+'-logfile.txt &'],shell=True,preexec_fn=os.setsid)
-        return str('nohup rclone copy static/files/'+path+' torgram:/drive -P > static/files/logs/'+str(path.split('/')[-1])+'-logfile.txt &')
+        return "0:Drive Input Not Found"
 
 # all drive stransfer in system
 @app.route('/drive-transfers',methods = ['GET'])
 def drive_transfers():
-        files_list=[str(i).split("'")[1].replace("\\n","") for i in subprocess.Popen(["ls","static/files/logs"],stdout=subprocess.PIPE).stdout]
-        files_list.remove('Sample Log.txt')
+        files_list=[str(i).split("'")[1].replace("\\n","") for i in subprocess.Popen(["ls","drive/logs"],stdout=subprocess.PIPE).stdout]
         lst1=[]
         for fname in files_list:
-            k=open("static/files/logs/"+fname,"r").read().split("*")[-1].replace(" ","").split(",")
+            k=open("drive/logs/"+fname,"r").read().split("*")[-1].replace(" ","").split(",")
             lst2=[]
             #file_name-0
             lst2.append(k[0].split(":")[0])
@@ -218,6 +178,21 @@ def drive_transfers():
             lst1.append(lst2)
         return render_template('drive_transfers.html',opt=lst1)
 
+@app.route('/<path:filename>',methods=['GET'])  
+def send_file(filename):
+    if os.path.isdir(filename):
+        remote=request.args.get('remote')
+        if not remote:
+            remote="false"
+        path=filename+"/"
+        folders=[i for i in os.listdir(path) if os.path.isdir(path+i)]
+        files=[i for i in os.listdir(path) if not os.path.isdir(path+i)]
+        units=[' bytes',' KB',' MB',' GB',' TB']
+        human_readable= lambda bytes,units:str(bytes) + units[0] if bytes < 1024 else human_readable(bytes>>10, units[1:])
+        files_size=[ human_readable(os.stat(path+i).st_size,units) for  i in files ]
+        return render_template('drive.html',folders=folders,files=files,files_size=files_size,path=path,remote=remote)
+    else:
+        return send_from_directory("/".join(filename.split("/")[:-1]),filename.split("/")[-1])
 
 # run bash command in system
 @app.route('/bash',methods = ['GET'])
@@ -227,39 +202,6 @@ def bash():
         return str(subprocess.Popen([q],shell=True,stdout=subprocess.PIPE).stdout.read()).replace('\n','<br>')
 
 
-
-# to list Files in drive
-@app.route('/drive',methods = ['GET'])
-def files():
-    sel_dr= request.args.get('remote')
-    ls1=[]
-    ls2=[]
-    ls3=[]
-    ls4=[]
-
-    #properties extract i.e folder or file
-    tmp1=[]
-    k=subprocess.Popen(["ls","-l","static/files"],stdout=subprocess.PIPE).stdout
-    for i in k:
-        tmp1.append(str(i))
-    tmp1=tmp1[1:]
-    for i in tmp1:
-        ls1.append(str(i).split("'")[1][0])
-    #seq. me name load from system
-    tmp2=[]
-    k=subprocess.Popen(["ls","static/files"],stdout=subprocess.PIPE).stdout
-    for i in k:
-        tmp2.append(str(i))
-    for i in tmp2:
-        ls2.append(str(i).split("'")[1].split("\\n")[0])
-    #diffrent lists of files and folders
-    for i in range(0,len(ls1)):
-        if ls1[i]=='d':
-            ls3.append(ls2[i])
-        elif ls1[i]=='-':
-            ls4.append(ls2[i])
-
-    return render_template('drive.html',list1=ls3,list2=ls4,d_name=sel_dr)
 
 # Login with rclone
 @app.route('/login',methods = ['GET'])

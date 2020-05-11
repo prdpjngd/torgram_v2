@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Torgram : torrent seedr</title>
+<title>Torgram : torrent leecher</title>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
@@ -10,7 +11,6 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
-
 
 <style>
 #rcorners2 {
@@ -27,9 +27,6 @@
   padding: 15px;
   margin: 0px;
 }
-
-
-
 input[type=text], select {
   width: 100%;
   padding: 12px 20px;
@@ -50,77 +47,71 @@ input[type=submit] {
   border-radius: 4px;
   cursor: pointer;
 }
-
 input[type=submit]:hover {
   background-color: #45a049;
 }
-</style>
-</head>
 
+.loader {
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid teal;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+</head>
 <body>
   <div class="jumbotron text-center">
     <h1>TORGRAM</h1>
-    <p>------ Cloud Torrent Client on Heroku ------</p>
+    <p>------ Cloud Torrent leecher Client on Heroku ------</p>
   </div>
 
   <div class="container">
     <div class="row">
-
       <!-- column - 1 -->
       <div class="col-sm-4">
         <h2>Add Torrent Here</h2><hr>
         <div class="container">
               <form action="/add-magnet" method="get" id='add-mag'>
-                <input type="text" name="mag-link" placeholder="Paste magnet url here" required>
+                <input type="text" id="mag_link_box" name="mag-link" placeholder="Paste magnet url here" required>
                 <input type="submit" value="Submit"><hr>
               </form>
         </div>
-        <div id="server-results"></div>
-        {% if login!="false" %}
-          <a href="/drive?remote={{login}}">
-            <img src="https://www.pngarts.com/files/3/Folder-PNG-Image.png" 
-            height="42" width="42" alt="drive Icon">
-            Go to Files [{{login}}]
-          </a>
-          <br>
-        {% else %}
-          <a href="/login">
+        <div id="server-results"></div><br>
+        
+        <a href="/login" id="loginbtn">
             <img alt="Qries" src="https://i.ya-webdesign.com/images/login-button-png-2.png"
-            width="45" height="45"> Login GDrive
-          </a>
-          <a href="/drive?remote=false">
-            <img src="https://www.pngarts.com/files/3/Folder-PNG-Image.png" 
-            height="42" width="42" alt="drive Icon">
-            Go to Files
-          </a>
-          <br>
-        {% endif %}
-        <br><a href="/drive-transfers">Drive Transfer Logs >> </a>
+            width="45" height="45"> Login your GDrive
+        </a><br>
+        <img id="drive_icon" src="https://www.pngarts.com/files/3/Folder-PNG-Image.png" 
+        height="42" width="42" alt="drive Icon">
+        <a href="/drive?remote=false" id="drivebtn">
+          Local Storage [ Temporary ]
+        </a>
+        <br>
+        <br><a id="drive_trans_btn" href="/drive-transfers">Drive Transfer Logs >> </a>
       </div>
-
       <!-- column - 2  -->
       <div class="col-sm">
         <h3>Downloading Torrents list</h3><hr>
-        {% for item in opt %}
-        <ul class="list-group">
-          <li class="list-group-item default">
-            <div>{{item[0]}}</div>
-            <div>Seeds : {{item[3]}} | Speed : {{item[1]}} | Total : {{item[2]}} | Time : {{item[6]}} | {{item[7]}} </div>
-            <div class="row">
-            <div style="padding:7px;width:90%;"><div class="progress" style="width:98%" ><div class="progress-bar {{item[5]}}" style="width:{{item[4]}};">{{item[4]}}</div></div></div>
-            <div "btn-group">
-              {% if 'bg-success' in item[5] %}
-              <button type="button" onclick="action2('{{item[7]}}')" id='pause{{item[7]}}' class="btn btn-danger" style="height:24px;width:25px;padding:0px"><i style="font-size: 15px" class="fas fa-pause"></i></button>
-              <button type="button" onclick="action3('{{item[7]}}')" id='stop{{item[7]}}'class="btn btn-danger" style="height:24px;width:30px;padding:0px"><i style="font-size: 15px" class="fas fa-trash"></i></button>
-              {% else %}
-              <button type="button" onclick="action1('{{item[7]}}')" id='resume{{item[7]}}' class="btn btn-danger" style="height:24px;width:25px;padding:0px;"><i style="font-size: 15px" class="fas fa-play"></i></button>
-              <button type="button" onclick="action3('{{item[7]}}')" id='stop{{item[7]}}'class="btn btn-danger" style="height:24px;width:30px;padding:0px"><i style="font-size: 15px" class="fas fa-trash"></i></button>
-              {% endif %}
-            </div>
-            </div>
-          </li>
-        </ul><br>
-        {% endfor %}
+        <ul class="list-group" id="download_list">
+          <center><div class="loader"></div></center>
+        </ul>
+        <br>
       </div>
 
 <script>
@@ -133,7 +124,8 @@ $("#add-mag").submit(function(event){
 		url : post_url,
 		type: request_method,
 		data : form_data
-	}).done(function(response){ //
+	}).done(function(response){ 
+    document.getElementById('mag_link_box').value="";
 		$("#server-results").html(response);
 	});
 });
@@ -147,9 +139,13 @@ function action1(gid1) {
   }).done(function(response){ //
     if(response=='True')
     {
-      window.location.reload();
+      document.getElementById('play'+gid).style.display="none";
+      document.getElementById('pause'+gid).style.display="block";
     }
-    else{alert('resume already')}
+    else
+    {
+      alert('Already Resumed! or Refresh the page.');
+    }
   });
 }
 
@@ -162,7 +158,8 @@ function action2(gid1) {
   }).done(function(response){ //
     if(response=='True')
     {
-      window.location.reload();
+      document.getElementById('pause'+gid).style.display="none";
+      document.getElementById('p'+gid).style.display="block";
     }
     else{alert('paused already')}
   });
@@ -182,13 +179,82 @@ function action3(gid1) {
   });
 }
 
-setTimeout(function(){
-   window.location.reload(1);
-}, 5000);
 
-{% if forward=="true"%}
-window.location.href = "/";
-{% endif %}
+
+function get_update(){
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open( "GET", "/list", false ); // false for synchronous request
+  xmlHttp.send();
+  json_res=xmlHttp.responseText;
+  var json_obj = JSON.parse(json_res)
+  var status=json_obj['ok'];
+  var result=json_obj['result'];
+  var list_html="";
+
+  if (result.length!=0)
+  {       
+    for(i=0;i<result.length;i++){
+      var progress_bar="";
+      if (result[i]['Status']=='active'){
+        progress_bar="bg-success progress-bar-striped progress-bar-animated";
+      }
+      else if (result[i]['Status']=='complete'){
+        progress_bar='progress-bar-info';
+      }           
+      else{
+        progress_bar='bg-danger progress-bar-striped';
+      }
+      var buttons="";
+      if (result[i]['Status']=='active'){
+        buttons=buttons+`<button type="button" onclick="action2('`+result[i]['Gid']+`')" id="pause`+result[i]['Gid']+`"class="btn btn-danger" style="height:24px;width:25px;padding:0px"><i style="font-size: 15px" class="fas fa-pause"></i></button>`;
+      }
+      else if (result[i]['Status']=='complete'){
+        buttons=buttons;
+      }           
+      else if (result[i]['Status']=='paused') {
+        buttons=buttons+`<button type="button" onclick="action1('`+result[i]['Gid']+`')" id="play`+result[i]['Gid']+`"class="btn btn-danger" style="height:24px;width:25px;padding:0px;"><i style="font-size: 15px" class="fas fa-play"></i></button>`;
+      }
+      list_html=list_html+`<li class="list-group-item default">
+      <div>`+result[i]['Name']+`</div>
+      <div>Seeds : `+result[i]['Seeds']+` | Speed : `+result[i]['Speed']+`  | Total : `+result[i]['Total']+`  | ETA : `+result[i]['ETA']+`  | GID : `+result[i]['Gid']+` | [ `+result[i]['Status']+` ]</div>
+      <div class="row">
+      <div style="padding:7px;width:90%;"><div class="progress" style="width:90%" ><div class="progress-bar `+progress_bar+`" style="width:`+result[i]['Progress']+`;">`+result[i]['Progress']+`</div></div></div>
+      <div "btn-group">`+buttons+`
+        <button type="button" onclick="action3('`+result[i]['Gid']+`')" id="trash`+result[i]['Gid']+`"class="btn btn-danger" style="height:24px;width:30px;padding:0px"><i style="font-size: 15px" class="fas fa-trash"></i></button>
+      </div>
+      </div>
+      </li>`
+    }
+    document.getElementById('download_list').innerHTML=list_html;
+  }
+  else
+  {
+    document.getElementById('download_list').innerHTML="No active Torrent!!!";
+  }
+}
+
+cookie_str=document.cookie
+if (cookie_str.includes("uid_token")==true){
+  username=cookie_str.split("uid_token=")[1]
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open( "GET", "/check-user?username="+username, false ); // false for synchronous request
+  xmlHttp.send();
+  if (xmlHttp.responseText=="true"){
+    document.getElementById("drivebtn").text = "Local Storage [ "+username+" ]";
+    document.getElementById("drivebtn").href = "/drive?remote="+username;
+    document.getElementById("loginbtn").style.display="none"
+    document.getElementById("drive_trans_btn").style.display="block"
+  }
+  else{
+    document.getElementById("server-results").innerHTML="Warning : Your last Login has been cleared from memory. Please login again .... ";
+  }
+}
+else
+{
+  document.getElementById("drive_trans_btn").style.display="none"
+}
+
+setInterval(get_update, 2000);
 
 </script>
 
