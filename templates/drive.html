@@ -29,7 +29,12 @@ Path : {{ path }}
   {% endfor %}
   {% for item in files %}
   <ul style="list-style-type:disc;">
-      <li><a href="/{{path}}{{item}}"> {{ item }} [{{files_size[loop.index0]}}]</a><button onclick="move2drive('/m2d?path={{path | replace("+","%2B")}}{{item | replace("+","%2B")}}&drive={{remote}}');">Move to Drive</button></li>
+      <li><a href="/{{path}}{{item}}"> {{ item }} [{{files_size[loop.index0]}}]</a><button onclick="move2drive('/m2d?path={{path | replace("+","%2B")}}{{item | replace("+","%2B")}}&drive={{remote}}');">Move to Drive</button>
+        {% if '.mp4' and '.mkv' in item %}
+          <a style='color: red;' href='/player?path={{path | replace("+","%2B")}}{{item | replace("+","%2B")}}'>Play</a>
+        {% else %}
+          </li>
+        {% endif %}
       </ul>
   {% endfor %}
 
@@ -47,7 +52,12 @@ Path : {{ path }}
   {% endfor %}
   {% for item in files %}
   <ul style="list-style-type:disc;">
-      <li><a href="/{{path}}{{item}}"> {{ item[:100] }} [{{files_size[loop.index0]}}]</a></li>
+      <li><a href="/{{path}}{{item}}"> {{ item[:100] }} [{{files_size[loop.index0]}}]</a>
+      {% if '.mp4' and '.mkv' in item %}
+        <a style='color: red;' href='/player?path={{path | replace("+","%2B")}}{{item | replace("+","%2B")}}'>Play</a></li>
+      {% else %}
+        </li>
+      {% endif %}
       </ul>
   {% endfor %}
 {% endif %}

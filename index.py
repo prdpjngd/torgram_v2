@@ -137,6 +137,11 @@ def download():
     gid = aria2.add_magnet(magnet_uri).gid
     return str(gid)
 
+@app.route('/player',methods = ['GET'])
+def player():
+    k = request.args.get('path')
+    return render_template('player.html',path=k)
+
 
 # copy file to remote drive function ...
 @app.route('/m2d',methods = ['GET'])

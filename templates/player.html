@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>TorGram - Video Player</title>
+    <link href="https://vjs.zencdn.net/4.3/video-js.css" rel="stylesheet">
+  <script src="https://vjs.zencdn.net/4.3/video.js"></script>
+
+</head>
+<body style="background-color: rgb(223, 217, 217);">
+<!-- partial:index.partial.html -->
+<p>{{path.split('/')[-1]}}</p>
+  <video id="my_video_1" class="video-js vjs-default-skin" controls preload="auto" 
+  data-setup='{ "asdf": true }' poster="http://video-js.zencoder.com/oceans-clip.png" >
+    <source src="{{path}}" type='video/mp4'>
+  </video>
+  <br><center><a href="/{{path}}">Download Now!</a></center>
+<!-- partial -->
+  <script>
+    videojs.autoSetup();
+
+videojs('my_video_1').ready(function(){
+  console.log(this.options()); //log all of the default videojs options
+  
+   // Store the video object
+  var myPlayer = this, id = myPlayer.id();
+  // Make up an aspect ratio
+  var aspectRatio = 264/640; 
+
+  function resizeVideoJS(){
+    var width = document.getElementById(id).parentElement.offsetWidth;
+    myPlayer.width(width).height( width * aspectRatio );
+
+  }
+  
+  // Initialize resizeVideoJS()
+  resizeVideoJS();
+  // Then on resize call resizeVideoJS()
+  window.onresize = resizeVideoJS; 
+});
+  </script>
+
+</body>
+</html>
