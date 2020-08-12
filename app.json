@@ -1,0 +1,30 @@
+{
+  "name": "TORGRAM - Aria2C Client",
+  "description": "This Aria2C Web Client",
+  "keywords": [
+    "Aria2C",
+    "best",
+    "Direct Download",
+    "URL Downloader",
+    "video Downloader",
+    "free",
+    "plugin",
+    "modular",
+    "productivity",
+    "Api support"
+  ],
+  "repository": "https://github.com/prdpjngd/torgram_v2.git",
+  "success_url": "https://github.com/prdpjngd/torgram_v2",
+  "website": "https://github.com/prdpjngd/torgram_v2",
+  "buildpacks": [
+  {
+    "url": "https://github.com/amivin/aria2-heroku"
+  }, 
+  {
+    "url": "heroku/python"
+  },
+  {
+    "url": "https://github.com/amivin/rclone-heroku.git"
+  }
+  ]
+}
