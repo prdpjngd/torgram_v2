@@ -12,8 +12,7 @@ aria2 = aria2p.API(
             host="http://localhost",
             port=6800,
             secret=""
-        )
-    )
+        ))
 
 @app.route('/run',methods = ['GET'])
 def run():
@@ -49,6 +48,7 @@ def home():
 def check_user():
     username=request.args.get('username')
     user_list=[i.replace("b'","").replace("'","") for i in str(subprocess.Popen(["rclone","listremotes"], stdout=subprocess.PIPE).communicate()[0]).split(":\\n")][:-1]
+    print(user_list)
     if username in user_list:
         return "true"
     else:
